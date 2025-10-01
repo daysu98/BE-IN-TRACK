@@ -3,6 +3,7 @@
 namespace App\Services\InternAttend;
 
 use App\Enums\CheckAttendStatus;
+use App\Enums\UserRoles;
 use App\Models\InternAttend;
 use App\Models\TempInternAttend;
 use LaravelEasyRepository\ServiceApi;
@@ -49,18 +50,22 @@ class InternAttendServiceImplement extends ServiceApi implements InternAttendSer
     public function createAttend()
     {
         try {
-            $this->request->validate(['status' => ['required', new Enum(CheckAttendStatus::class)],]);
+            $this->request->validate(
+                [
+                    'status' => ['required', new Enum(CheckAttendStatus::class)],
+                ]
+            );
             $status = $this->request->enum('status', CheckAttendStatus::class);
+
             $userId = Auth::user()->role === 'intern' ? Auth::id() : $this->request->user_id;
-            $existingAttendance = InternAttend::where('user_id', $userId)
-                ->where('tanggal', today('Asia/Kuala_Lumpur')->toDateString())->first();
-            if ($existingAttendance) {
-                return $this->setCode(409)->setMessage("Attendance for today already exists.")->setData(null);
+
+            if ($this->mainRepository->checkIfAttendIsExist($userId)) {
+                return $this->setCode(409)->setMessage("Attendance for today already exists.");
             }
 
             switch (Auth::user()->role) {
-                case 'admin':
-                case 'staff':
+                case UserRoles::ADMIN->value:
+                case UserRoles::STAFF->value:
                     $data = $this->mainRepository->create(
                         [
                             'user_id' => $this->request->user_id,
@@ -72,7 +77,7 @@ class InternAttendServiceImplement extends ServiceApi implements InternAttendSer
                         ]
                     );
                     break;
-                case 'intern':
+                case UserRoles::INTERN->value:
                     $isSickOrPermitted = in_array($status, [CheckAttendStatus::SAKIT, CheckAttendStatus::IJIN, CheckAttendStatus::ALPA]);
                     $data = $this->mainRepository->create(
                         [
@@ -89,7 +94,17 @@ class InternAttendServiceImplement extends ServiceApi implements InternAttendSer
                     return $this->setCode(403)->setMessage("Unauthorized Role")->setData(null);
             }
 
-            TempInternAttend::create(['intern_attend_id' => $data->id, 'user_id' => $data->user_id, 'status' => $data->status, 'tanggal' => $data->tanggal, 'jam_masuk' => $data->jam_masuk, 'jam_keluar' => $data->jam_keluar, 'expired_at' => now('Asia/Kuala_Lumpur')->addWeek(),]);
+            TempInternAttend::create(
+                [
+                    'intern_attend_id' => $data->id,
+                    'user_id' => $data->user_id,
+                    'status' => $data->status,
+                    'tanggal' => $data->tanggal,
+                    'jam_masuk' => $data->jam_masuk,
+                    'jam_keluar' => $data->jam_keluar,
+                    'expired_at' => now('Asia/Kuala_Lumpur')->addWeek(),
+                ]
+            );
             return $this->setCode(200)->setMessage("$this->title_intern $this->create_message_intern")->setData($data);
         } catch (\Exception $e) {
             return $this->exceptionResponse($e);
@@ -99,10 +114,8 @@ class InternAttendServiceImplement extends ServiceApi implements InternAttendSer
     public function checkoutAttend()
     {
         try {
-            $userId = Auth::id();
-            $attendance = InternAttend::where('user_id', $userId)
-                ->where('tanggal', today('Asia/Kuala_Lumpur')->toDateString())
-                ->firstOrFail();
+            $attendance = $this->mainRepository->checkIfInternHasBeenCheckout();
+
             if ($attendance->jam_keluar && $attendance->jam_keluar !== null) { // [MODIFIKASI]: Menambahkan pengecekan null
                 return $this->setCode(409)->setMessage("Already checked out for today.")->setData($attendance);
             }
@@ -111,7 +124,7 @@ class InternAttendServiceImplement extends ServiceApi implements InternAttendSer
             TempInternAttend::updateOrCreate(
                 ['intern_attend_id' => $attendance->id],
                 [
-                    'user_id' => $userId,
+                    'user_id' => Auth::id(),
                     'status' => $attendance->status,
                     'tanggal' =>
                         $attendance->tanggal,
@@ -131,7 +144,11 @@ class InternAttendServiceImplement extends ServiceApi implements InternAttendSer
     public function updateAttend($id)
     {
         try {
-            $this->request->validate(['status' => ['sometimes', 'required', new Enum(CheckAttendStatus::class)], 'tanggal' => ['sometimes', 'required'],]);
+            $this->request->validate([
+                'status' => ['sometimes', 'required', new Enum(CheckAttendStatus::class)],
+                'tanggal' => ['sometimes', 'required'],
+            ]);
+
             $updateData = $this->request->only(['user_id', 'tanggal', 'jam_masuk', 'jam_keluar']);
 
             if ($this->request->has('status')) {
@@ -139,10 +156,20 @@ class InternAttendServiceImplement extends ServiceApi implements InternAttendSer
             }
 
             $data = $this->mainRepository->update($id, $updateData);
-            TempInternAttend::updateOrCreate(
-                ['intern_attend_id' => $data->id],
-                ['user_id' => $data->user_id, 'status' => $data->status, 'tanggal' => $data->tanggal, 'jam_masuk' => $data->jam_masuk, 'jam_keluar' => $data->jam_keluar, 'expired_at' => now('Asia/Kuala_Lumpur')->addWeek()]
-            );
+            if ($id || !empty($updateData)) {
+                TempInternAttend::where('intern_attend_id', $id)->delete();
+
+                TempInternAttend::create([
+                    'intern_attend_id' => $id,
+                    'user_id' => $this->request->user_id,
+                    'status' => $updateData['status'],
+                    'tanggal' => $this->request->tanggal,
+                    'jam_masuk' => $this->request->jam_masuk,
+                    'jam_keluar' => $this->request->jam_keluar,
+                    'expired_at' => now('Asia/Kuala_Lumpur')->addWeek(),
+                ]);
+            }
+
             return $this->setCode(200)->setMessage("$this->title_intern $this->update_message_intern")->setData($data);
         } catch (\Exception $e) {
             return $this->exceptionResponse($e);

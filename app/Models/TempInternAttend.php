@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CheckAttendStatus;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use LaravelEasyRepository\Traits\GenUid;
 
@@ -34,6 +35,7 @@ use LaravelEasyRepository\Traits\GenUid;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TempInternAttend whereTanggal($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TempInternAttend whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TempInternAttend whereUserId($value)
+ * @property-read string $tanggal_iso
  * @mixin \Eloquent
  */
 class TempInternAttend extends Model
@@ -41,7 +43,7 @@ class TempInternAttend extends Model
     use GenUid;
 
     protected $fillable = [
-        'intern_attend_id', // ini jangan di tampilkan di halaman dengan role intern; jika di admin, tampilkan.
+        'intern_attend_id',
         'user_id',
         'status',
         'tanggal',
@@ -60,6 +62,13 @@ class TempInternAttend extends Model
         return [
             'status' => CheckAttendStatus::class,
         ];
+    }
+
+    protected $appends = ['tanggal_iso'];
+
+    public function getTanggalIsoAttribute(): string
+    {
+        return Carbon::parse($this->tanggal)->isoFormat('DD MMM YYYY');
     }
 
     public function intern_attend()

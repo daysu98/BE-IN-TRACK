@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRoles;
 use App\Models\TempInternAttend;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,8 +15,8 @@ class TempInternAttendController extends Controller
         $search = request('q');
 
         switch (Auth::user()->role) {
-            case 'admin':
-            case 'staff':
+            case UserRoles::ADMIN->value:
+            case UserRoles::STAFF->value:
                 $temp_intern_attends = TempInternAttend::latest('created_at')
                     ->with(['user:id,name', 'intern_attend:id'])
                     ->when(
@@ -29,7 +30,7 @@ class TempInternAttendController extends Controller
                             ->orWhereRelation('user', 'name', 'like', "%$search%")
                     )->get();
                 break;
-            case 'intern':
+            case UserRoles::INTERN->value:
                 $temp_intern_attends = TempInternAttend::latest('created_at')
                     ->with(['user:id,name', 'intern_attend:id'])
                     ->when(
@@ -43,7 +44,8 @@ class TempInternAttendController extends Controller
                             ->orWhereRelation('user', 'name', 'like', "%$search%")
                     )->where('user_id', Auth::id())->get(['id', 'user_id', 'status', 'tanggal', 'jam_masuk', 'jam_keluar', 'created_at']);
                 break;
-            default;
+            default:
+                throw new \Exception("Login Terlebih Dahulu.");
         }
 
         return response()->json([

@@ -16,3 +16,5 @@ Schedule::command('app:clear-temp-job-interns')->weekly();
 
 // token expiration.
 Schedule::command('sanctum:prune-expired --hours=6')->everySixHours();
+
+Schedule::command('app:set-attendance-at-5pm')->weekdays()->dailyAt('17:00')->timezone('Asia/Kuala_Lumpur');

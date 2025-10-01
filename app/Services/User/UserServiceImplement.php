@@ -2,6 +2,7 @@
 
 namespace App\Services\User;
 
+use App\Enums\UserRoles;
 use Illuminate\Support\Str;
 use LaravelEasyRepository\ServiceApi;
 use App\Repositories\User\UserRepository;
@@ -16,7 +17,6 @@ class UserServiceImplement extends ServiceApi implements UserService
     private string $create_message_user = "berhasil dibuat";
     private string $update_message_user = "berhasil diubah";
     private string $delete_message_user = "berhasil dihapus";
-
 
     protected UserRepository $mainRepository;
     private Request $request;
@@ -69,8 +69,8 @@ class UserServiceImplement extends ServiceApi implements UserService
                 'photo' => ['nullable', 'mimes:png,jpg,webp', 'max:1024'],
             ]);
 
-            if ($this->request->role === 'admin') {
-                if (Auth::user()->role !== 'admin') {
+            if ($this->request->role === UserRoles::ADMIN->value) {
+                if (Auth::user()->role !== UserRoles::ADMIN->value) {
                     throw new \Exception("Tidak boleh menambah admin lagi.");
                 }
             }
@@ -84,11 +84,11 @@ class UserServiceImplement extends ServiceApi implements UserService
             $data = $this->mainRepository->create([
                 'name' => $this->request->name,
                 'email' => $this->request->email,
-                'date' => today('Asia/Kuala_Lumpur')->isoFormat('DD MMMM YYYY'),
+                'date' => today('Asia/Kuala_Lumpur')->isoFormat('DD MMM YYYY'),
                 'password' => $this->request->password,
                 'role' => $this->request->role,
-                'bio' => $this->request->bio ?? "",
-                'institution' => $this->request->institution ?? "",
+                'bio' => $this->request->bio ?? '-',
+                'institution' => $this->request->institution ?? '-',
                 'due_date' => $this->request->due_date ?? CarbonImmutable::createFromDate(0001, 1, 1, 'Asia/Kuala_Lumpur'),
                 'photo' => $fileName ?? '-',
             ]);
@@ -148,7 +148,7 @@ class UserServiceImplement extends ServiceApi implements UserService
         try {
             $getUserId = $this->mainRepository->findOrFail($id);
 
-            if ($getUserId->role === "admin") {
+            if ($getUserId->role === UserRoles::ADMIN->value) {
                 throw new \Exception("Dilarang menghapus user admin!");
             }
 

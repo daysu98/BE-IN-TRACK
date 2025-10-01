@@ -44,7 +44,7 @@ class UserController extends Controller
 
     public function getStaffList(): JsonResponse
     {
-        $staff = User::where('role', 'staff')->get(['id', 'name']);
+        $staff = User::where('role', '=', 'staff')->get(['id', 'name']);
         return response()->json($staff);
     }
 

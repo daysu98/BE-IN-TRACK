@@ -2,8 +2,11 @@
 
 namespace App\Repositories\InternAttend;
 
+use App\Enums\UserRoles;
 use LaravelEasyRepository\Implementations\Eloquent;
 use App\Models\InternAttend;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
@@ -26,9 +29,9 @@ class InternAttendRepositoryImplement extends Eloquent implements InternAttendRe
 
     public function getDataAttend()
     {
-        switch (Auth::user()->role){
-            case 'admin':
-            case 'staff':
+        switch (Auth::user()->role) {
+            case UserRoles::ADMIN->value:
+            case UserRoles::STAFF->value:
                 return $this->model->latest('created_at')->with(['user'])->when(
                     $this->search,
                     fn($q) =>
@@ -36,20 +39,35 @@ class InternAttendRepositoryImplement extends Eloquent implements InternAttendRe
                         ->orWhere('tanggal', 'like', "%$this->search%")
                         ->orWhere('jam_masuk', 'like', "%$this->search%")
                         ->orWhere('jam_keluar', 'like', "%$this->search")
+                        ->orWhere('tanggal_iso', 'like', "%$this->search")
                         ->orWhereRelation('user', 'name', 'like', "%$this->search%")
                 )->get();
-                case 'intern':
-                    return $this->model->latest('created_at')->with(['user'])->when(
-                        $this->search,
-                        fn($q) =>
-                        $q->where('status', 'like', "%$this->search%")
-                            ->orWhere('tanggal', 'like', "%$this->search%")
-                            ->orWhere('jam_masuk', 'like', "%$this->search%")
-                            ->orWhere('jam_keluar', 'like', "%$this->search")
-                            ->orWhereRelation('user', 'name', 'like', "%$this->search%")
-                    )->where('user_id', Auth::id())->get();
-            default;
+            case UserRoles::INTERN->value:
+                return $this->model->latest('created_at')->with(['user'])->when(
+                    $this->search,
+                    fn($q) =>
+                    $q->where('status', 'like', "%$this->search%")
+                        ->orWhere('tanggal', 'like', "%$this->search%")
+                        ->orWhere('jam_masuk', 'like', "%$this->search%")
+                        ->orWhere('jam_keluar', 'like', "%$this->search")
+                        ->orWhere('tanggal_iso', 'like', "%$this->search")
+                        ->orWhereRelation('user', 'name', 'like', "%$this->search%")
+                )->where('user_id', Auth::id())->get();
+            default:
+                throw new \Exception("Login Terlebih Dahulu.");
         }
 
+    }
+
+    public function checkIfAttendIsExist($userId): bool
+    {
+        return $this->model->where('user_id', $userId)->where('tanggal', today('Asia/Kuala_Lumpur')->toDateString())->exists();
+    }
+
+    public function checkIfInternHasBeenCheckout(): InternAttend
+    {
+        return $this->model->where('user_id', Auth::id())
+            ->where('tanggal', today('Asia/Kuala_Lumpur')->toDateString())
+            ->firstOrFail();
     }
 }

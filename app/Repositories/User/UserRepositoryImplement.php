@@ -2,6 +2,7 @@
 
 namespace App\Repositories\User;
 
+use App\Enums\UserRoles;
 use LaravelEasyRepository\Implementations\Eloquent;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -27,7 +28,7 @@ class UserRepositoryImplement extends Eloquent implements UserRepository
     public function getDataUser()
     {
         switch (Auth::user()->role) {
-            case 'admin':
+            case UserRoles::ADMIN->value:
                 return $this->model->latest('created_at')->when(
                     $this->search,
                     fn($q) =>
@@ -39,7 +40,7 @@ class UserRepositoryImplement extends Eloquent implements UserRepository
                         ->orWhere('institution', 'like', "%$this->search%")
                         ->orWhere('due_date', 'like', "%$this->search%")
                 )->get();
-            case 'staff':
+            case UserRoles::STAFF->value:
                 return $this->model->latest('created_at')->when(
                     $this->search,
                     fn($q) =>
@@ -51,7 +52,7 @@ class UserRepositoryImplement extends Eloquent implements UserRepository
                         ->orWhere('institution', 'like', "%$this->search%")
                         ->orWhere('due_date', 'like', "%$this->search%")
                 )->where('role', '=', 'intern')->get();
-            case 'intern':
+            case UserRoles::INTERN->value:
                 return $this->model->latest('created_at')->when(
                     $this->search,
                     fn($q) =>

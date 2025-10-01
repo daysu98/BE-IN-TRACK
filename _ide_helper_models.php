@@ -60,6 +60,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|InternAttend whereTanggal($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|InternAttend whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|InternAttend whereUserId($value)
+ * @property-read string $tanggal_iso
  * @mixin \Eloquent
  */
 	class InternAttend extends \Eloquent {}
@@ -95,6 +96,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|JobIntern whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|JobIntern whereCreated($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|JobIntern whereManageBy($value)
+ * @property-read string $deadline_iso
  * @mixin \Eloquent
  */
 	class JobIntern extends \Eloquent {}
@@ -184,6 +186,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TempInternAttend whereTanggal($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TempInternAttend whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TempInternAttend whereUserId($value)
+ * @property-read string $tanggal_iso
  * @mixin \Eloquent
  */
 	class TempInternAttend extends \Eloquent {}
@@ -222,6 +225,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TempJobIntern whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TempJobIntern whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TempJobIntern whereManageBy($value)
+ * @property-read string $deadline_iso
  * @mixin \Eloquent
  */
 	class TempJobIntern extends \Eloquent {}

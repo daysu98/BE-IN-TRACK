@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use App\Enums\CheckJobStatus;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use LaravelEasyRepository\Traits\GenUid;
 
 /**
- *
+ * 
  *
  * @property string $id
  * @property string $user_id
@@ -35,6 +36,7 @@ use LaravelEasyRepository\Traits\GenUid;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|JobIntern whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|JobIntern whereCreated($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|JobIntern whereManageBy($value)
+ * @property-read string $deadline_iso
  * @mixin \Eloquent
  */
 class JobIntern extends Model
@@ -61,6 +63,13 @@ class JobIntern extends Model
         return [
             'status' => CheckJobStatus::class,
         ];
+    }
+
+    protected $appends = ['deadline_iso'];
+
+    public function getDeadlineIsoAttribute(): string
+    {
+        return Carbon::parse($this->deadline)->isoFormat('DD MMM YYYY');
     }
 
     public function user()

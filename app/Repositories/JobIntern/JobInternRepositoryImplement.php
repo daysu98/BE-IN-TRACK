@@ -2,6 +2,7 @@
 
 namespace App\Repositories\JobIntern;
 
+use App\Enums\UserRoles;
 use LaravelEasyRepository\Implementations\Eloquent;
 use App\Models\JobIntern;
 use Illuminate\Database\Eloquent\Model;
@@ -27,8 +28,7 @@ class JobInternRepositoryImplement extends Eloquent implements JobInternReposito
     public function getDataInternJob()
     {
         switch (Auth::user()->role) {
-            case 'admin':
-            case 'staff':
+            case UserRoles::ADMIN->value:
                 return $this->model->with(['user'])->when(
                     $this->search,
                     fn($q) =>
@@ -37,9 +37,10 @@ class JobInternRepositoryImplement extends Eloquent implements JobInternReposito
                         ->orWhere('description', 'like', "%$this->search%")
                         ->orWhere('status', 'like', "%$this->search%")
                         ->orWhere('manage_by', 'like', "%$this->search%")
+                        ->orWhere('deadline_iso', 'like', "%$this->search%")
                         ->orWhereRelation('user', 'name', 'like', "%$this->search%")
                 )->orderByRaw("CASE WHEN status = 'Done' THEN 1 ELSE 0 END")->oldest('created_at')->get();
-            case 'intern':
+            case UserRoles::STAFF->value:
                 return $this->model->with(['user'])->when(
                     $this->search,
                     fn($q) =>
@@ -48,6 +49,19 @@ class JobInternRepositoryImplement extends Eloquent implements JobInternReposito
                         ->orWhere('description', 'like', "%$this->search%")
                         ->orWhere('status', 'like', "%$this->search%")
                         ->orWhere('manage_by', 'like', "%$this->search%")
+                        ->orWhere('deadline_iso', 'like', "%$this->search%")
+                        ->orWhereRelation('user', 'name', 'like', "%$this->search%")
+                )->orderByRaw("CASE WHEN status = 'Done' THEN 1 ELSE 0 END")->oldest('created_at')->where('manage_by', Auth::user()->name)->get();
+            case UserRoles::INTERN->value:
+                return $this->model->with(['user'])->when(
+                    $this->search,
+                    fn($q) =>
+                    $q->where('task', 'like', "%$this->search%")
+                        ->orWhere('created', 'like', "%$this->search%")
+                        ->orWhere('description', 'like', "%$this->search%")
+                        ->orWhere('status', 'like', "%$this->search%")
+                        ->orWhere('manage_by', 'like', "%$this->search%")
+                        ->orWhere('deadline_iso', 'like', "%$this->search%")
                         ->orWhereRelation('user', 'name', 'like', "%$this->search%")
                 )->orderByRaw("CASE WHEN status = 'Done' THEN 1 ELSE 0 END")->oldest('created_at')->where('user_id', Auth::id())->get();
             default;

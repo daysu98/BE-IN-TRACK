@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRoles;
 use App\Models\TempJobIntern;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,8 +15,8 @@ class TempJobInternController extends Controller
         $search = request('q');
 
         switch (Auth::user()->role) {
-            case 'admin':
-            case 'staff':
+            case UserRoles::ADMIN->value:
+            case UserRoles::STAFF->value:
                 $temp_job_interns = TempJobIntern::with(['user:id,name', 'job_intern:id'])
                     ->when(
                         $search,
@@ -33,7 +34,7 @@ class TempJobInternController extends Controller
                     ->latest('created_at')
                     ->get();
                 break;
-            case 'intern':
+            case UserRoles::INTERN->value:
                 $temp_job_interns = TempJobIntern::with(['user:id,name', 'job_intern:id'])
                     ->when(
                         $search,
@@ -51,7 +52,8 @@ class TempJobInternController extends Controller
                     ->latest('created_at')
                     ->get(['id', 'job_intern_id', 'user_id', 'created', 'task', 'description', 'deadline', 'status', 'manage_by', 'created_at']);
                 break;
-            default;
+            default:
+                throw new \Exception("Login Terlebih Dahulu.");
         }
 
         return response()->json([

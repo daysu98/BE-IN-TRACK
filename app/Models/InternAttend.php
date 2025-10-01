@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CheckAttendStatus;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use LaravelEasyRepository\Traits\GenUid;
 
@@ -31,6 +32,7 @@ use LaravelEasyRepository\Traits\GenUid;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|InternAttend whereTanggal($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|InternAttend whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|InternAttend whereUserId($value)
+ * @property-read string $tanggal_iso
  * @mixin \Eloquent
  */
 class InternAttend extends Model
@@ -55,6 +57,13 @@ class InternAttend extends Model
         return [
             'status' => CheckAttendStatus::class,
         ];
+    }
+
+    protected $appends = ['tanggal_iso'];
+
+    public function getTanggalIsoAttribute(): string
+    {
+        return Carbon::parse($this->tanggal)->isoFormat('DD MMM YYYY');
     }
 
     public function user()
