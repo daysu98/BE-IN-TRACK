@@ -25,10 +25,10 @@ Route::middleware(['guest', 'throttle:api'])->group(function () {
     Route::post('/register', [UserController::class, 'store'])->name('register');
 });
 
-// Route::middleware(['auth:sanctum', 'ability:admin', 'throttle:api'])->group(function () {
-//     // [MODIFIKASI DIPINDAHKAN]: Rute intern_attends dipindahkan ke grup admin,staff
-//     Route::apiResource('picket-tasks', PicketTaskController::class);
-// });
+Route::middleware(['auth:sanctum', 'ability:admin', 'throttle:api'])->group(function () {
+    // [MODIFIKASI DIPINDAHKAN]: Rute intern_attends dipindahkan ke grup admin,staff
+    Route::apiResource('picket-tasks', PicketTaskController::class);
+});
 
 Route::middleware(['auth:sanctum', 'ability:admin,staff', 'throttle:api'])->group(function () {
     // [MODIFIKASI DIMULAI]: Rute intern_attends sekarang ada di sini

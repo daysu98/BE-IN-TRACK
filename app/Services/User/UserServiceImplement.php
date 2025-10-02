@@ -70,7 +70,7 @@ class UserServiceImplement extends ServiceApi implements UserService
             ]);
 
             if ($this->request->role === UserRoles::ADMIN->value) {
-                if (Auth::user()->role !== UserRoles::ADMIN->value) {
+                if ($this->mainRepository->checkIfAdminExist()) {
                     throw new \Exception("Tidak boleh menambah admin lagi.");
                 }
             }

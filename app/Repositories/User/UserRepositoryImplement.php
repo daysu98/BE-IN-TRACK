@@ -68,4 +68,9 @@ class UserRepositoryImplement extends Eloquent implements UserRepository
                 throw new \Exception("Login Terlebih Dahulu.");
         }
     }
+
+    public function checkIfAdminExist(): bool
+    {
+        return $this->model->where('role', UserRoles::ADMIN->value)->exists();
+    }
 }
