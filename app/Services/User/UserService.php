@@ -10,6 +10,8 @@ interface UserService extends BaseService
 
     public function getUserById($id);
 
+    public function getStaffUser();
+
     public function createUser();
 
     public function updateUser($id);

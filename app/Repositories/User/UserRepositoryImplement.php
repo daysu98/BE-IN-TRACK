@@ -5,6 +5,7 @@ namespace App\Repositories\User;
 use App\Enums\UserRoles;
 use LaravelEasyRepository\Implementations\Eloquent;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
@@ -72,5 +73,15 @@ class UserRepositoryImplement extends Eloquent implements UserRepository
     public function checkIfAdminExist(): bool
     {
         return $this->model->where('role', UserRoles::ADMIN->value)->exists();
+    }
+
+    public function checkIfInternBypassTheManageBy($userName)
+    {
+        return $this->model->where('role', UserRoles::INTERN->value)->where('name', $userName)->value('name');
+    }
+
+    public function getStaffList()
+    {
+        return $this->model->where('role', '=', 'staff')->get(['id', 'name']);
     }
 }

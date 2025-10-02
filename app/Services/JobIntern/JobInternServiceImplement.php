@@ -7,6 +7,7 @@ use App\Enums\UserRoles;
 use App\Models\TempJobIntern;
 use LaravelEasyRepository\ServiceApi;
 use App\Repositories\JobIntern\JobInternRepository;
+use App\Repositories\User\UserRepository;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,11 +19,13 @@ class JobInternServiceImplement extends ServiceApi implements JobInternService
     private string $update_message_job = "berhasil diubah";
     private string $delete_message_job = "berhasil dihapus";
     protected JobInternRepository $mainRepository;
+    protected UserRepository $userRepository;
     private Request $request;
 
-    public function __construct(JobInternRepository $mainRepository, Request $request)
+    public function __construct(JobInternRepository $mainRepository, Request $request, UserRepository $userRepository)
     {
         $this->mainRepository = $mainRepository;
+        $this->userRepository = $userRepository;
         $this->request = $request;
     }
 
@@ -112,6 +115,11 @@ class JobInternServiceImplement extends ServiceApi implements JobInternService
                         'manage_by' => ['required', 'string'],
                         'deadline' => ['required', 'date'],
                     ]);
+
+                    if ($this->request->manage_by === $this->userRepository->checkIfInternBypassTheManageBy($this->request->manage_by)) {
+                        throw new \Exception("Intern tidak boleh menentukan kerjaan nya dari intern yang lain! Hanya dari admin / staff saja!");
+                    }
+
                     $data = $this->mainRepository->create([
                         'user_id' => Auth::id(),
                         'created' => today('Asia/Kuala_Lumpur')->isoFormat('dddd, DD MMMM Y'),

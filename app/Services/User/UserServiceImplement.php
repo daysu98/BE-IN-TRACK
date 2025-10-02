@@ -55,6 +55,19 @@ class UserServiceImplement extends ServiceApi implements UserService
         }
     }
 
+    public function getStaffUser()
+    {
+        try {
+            $data = $this->mainRepository->getStaffList();
+
+            return $this->setCode(200)
+                ->setMessage("OK")
+                ->setData($data);
+        } catch (\Exception $e) {
+            return $this->exceptionResponse($e);
+        }
+    }
+
     public function createUser()
     {
         try {

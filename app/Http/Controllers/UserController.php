@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Services\User\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -44,8 +43,7 @@ class UserController extends Controller
 
     public function getStaffList(): JsonResponse
     {
-        $staff = User::where('role', '=', 'staff')->get(['id', 'name']);
-        return response()->json($staff);
+        return $this->userService->getStaffUser()->toJson();
     }
 
 }
