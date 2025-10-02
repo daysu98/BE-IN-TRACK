@@ -104,6 +104,14 @@ class UserServiceImplement extends ServiceApi implements UserService
     public function updateUser($id)
     {
         try {
+            $getUserId = $this->mainRepository->findOrFail($id);
+
+            if ($getUserId->role === UserRoles::ADMIN->value) {
+                if (Auth::id() !== $id) {
+                    throw new \Exception("Dilarang edit admin selain admin sendiri!");
+                }
+            }
+
             $this->request->validate([
                 'name' => ['sometimes', 'required'],
                 'email' => ['sometimes', 'required', "unique:users,email,$id"],
@@ -120,11 +128,9 @@ class UserServiceImplement extends ServiceApi implements UserService
                 $updateData['password'] = $this->request->password;
             }
 
-            $updateFile = $this->mainRepository->findOrFail($id);
-
             if ($this->file) {
-                if ($updateFile->photo && $updateFile->photo !== '-') {
-                    Storage::disk('public')->delete("img/avt/$updateFile->photo");
+                if ($getUserId->photo && $getUserId->photo !== '-') {
+                    Storage::disk('public')->delete("img/avt/$getUserId->photo");
                 }
                 $fileName = Str::random(70) . '.' . $this->file->extension();
 

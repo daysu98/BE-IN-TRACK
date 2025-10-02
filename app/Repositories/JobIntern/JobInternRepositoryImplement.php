@@ -39,7 +39,7 @@ class JobInternRepositoryImplement extends Eloquent implements JobInternReposito
                         ->orWhere('manage_by', 'like', "%$this->search%")
                         ->orWhere('deadline_iso', 'like', "%$this->search%")
                         ->orWhereRelation('user', 'name', 'like', "%$this->search%")
-                )->orderByRaw("CASE WHEN status = 'Done' THEN 1 ELSE 0 END")->oldest('created_at')->get();
+                )->orderByRaw("CASE WHEN status = 'Done' THEN 1 ELSE 0 END")->latest('created_at')->get();
             case UserRoles::STAFF->value:
                 return $this->model->with(['user'])->when(
                     $this->search,
@@ -51,7 +51,7 @@ class JobInternRepositoryImplement extends Eloquent implements JobInternReposito
                         ->orWhere('manage_by', 'like', "%$this->search%")
                         ->orWhere('deadline_iso', 'like', "%$this->search%")
                         ->orWhereRelation('user', 'name', 'like', "%$this->search%")
-                )->orderByRaw("CASE WHEN status = 'Done' THEN 1 ELSE 0 END")->oldest('created_at')->where('manage_by', Auth::user()->name)->get();
+                )->orderByRaw("CASE WHEN status = 'Done' THEN 1 ELSE 0 END")->latest('created_at')->where('manage_by', Auth::user()->name)->get();
             case UserRoles::INTERN->value:
                 return $this->model->with(['user'])->when(
                     $this->search,
@@ -63,7 +63,7 @@ class JobInternRepositoryImplement extends Eloquent implements JobInternReposito
                         ->orWhere('manage_by', 'like', "%$this->search%")
                         ->orWhere('deadline_iso', 'like', "%$this->search%")
                         ->orWhereRelation('user', 'name', 'like', "%$this->search%")
-                )->orderByRaw("CASE WHEN status = 'Done' THEN 1 ELSE 0 END")->oldest('created_at')->where('user_id', Auth::id())->get();
+                )->orderByRaw("CASE WHEN status = 'Done' THEN 1 ELSE 0 END")->latest('created_at')->where('user_id', Auth::id())->get();
             default;
         }
     }

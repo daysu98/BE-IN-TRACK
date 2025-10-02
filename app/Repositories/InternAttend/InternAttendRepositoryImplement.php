@@ -31,7 +31,6 @@ class InternAttendRepositoryImplement extends Eloquent implements InternAttendRe
     {
         switch (Auth::user()->role) {
             case UserRoles::ADMIN->value:
-            case UserRoles::STAFF->value:
                 return $this->model->latest('created_at')->with(['user'])->when(
                     $this->search,
                     fn($q) =>
@@ -42,6 +41,21 @@ class InternAttendRepositoryImplement extends Eloquent implements InternAttendRe
                         ->orWhere('tanggal_iso', 'like', "%$this->search")
                         ->orWhereRelation('user', 'name', 'like', "%$this->search%")
                 )->get();
+            case UserRoles::STAFF->value:
+                return $this->model->latest('created_at')->with(['user'])->whereHas(
+                    'user',
+                    fn($q) =>
+                    $q->where('role', '=', 'intern')
+                )->when(
+                        $this->search,
+                        fn($q) =>
+                        $q->where('status', 'like', "%$this->search%")
+                            ->orWhere('tanggal', 'like', "%$this->search%")
+                            ->orWhere('jam_masuk', 'like', "%$this->search%")
+                            ->orWhere('jam_keluar', 'like', "%$this->search")
+                            ->orWhere('tanggal_iso', 'like', "%$this->search")
+                            ->orWhereRelation('user', 'name', 'like', "%$this->search%")
+                    )->get();
             case UserRoles::INTERN->value:
                 return $this->model->latest('created_at')->with(['user'])->when(
                     $this->search,
