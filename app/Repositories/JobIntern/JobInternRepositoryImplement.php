@@ -39,7 +39,7 @@ class JobInternRepositoryImplement extends Eloquent implements JobInternReposito
                         ->orWhere('manage_by', 'like', "%$this->search%")
                         ->orWhere('deadline_iso', 'like', "%$this->search%")
                         ->orWhereRelation('user', 'name', 'like', "%$this->search%")
-                )->orderByRaw("CASE WHEN status = 'Done' THEN 1 ELSE 0 END")->oldest('deadline')->get();
+                )->orderByRaw("FIELD(status, 'Pending', 'Done')")->orderByRaw("CASE WHEN status = 'Pending' THEN deadline END ASC")->orderByRaw("CASE WHEN status = 'Done' THEN deadline END DESC")->get();
             case UserRoles::STAFF->value:
                 return $this->model->with(['user'])->when(
                     $this->search,
@@ -51,7 +51,7 @@ class JobInternRepositoryImplement extends Eloquent implements JobInternReposito
                         ->orWhere('manage_by', 'like', "%$this->search%")
                         ->orWhere('deadline_iso', 'like', "%$this->search%")
                         ->orWhereRelation('user', 'name', 'like', "%$this->search%")
-                )->orderByRaw("CASE WHEN status = 'Done' THEN 1 ELSE 0 END")->oldest('deadline')->where('manage_by', Auth::user()->name)->get();
+                )->orderByRaw("FIELD(status, 'Pending', 'Done')")->orderByRaw("CASE WHEN status = 'Pending' THEN deadline END ASC")->orderByRaw("CASE WHEN status = 'Done' THEN deadline END DESC")->where('manage_by', Auth::user()->name)->get();
             case UserRoles::INTERN->value:
                 return $this->model->with(['user'])->when(
                     $this->search,
@@ -63,7 +63,7 @@ class JobInternRepositoryImplement extends Eloquent implements JobInternReposito
                         ->orWhere('manage_by', 'like', "%$this->search%")
                         ->orWhere('deadline_iso', 'like', "%$this->search%")
                         ->orWhereRelation('user', 'name', 'like', "%$this->search%")
-                )->orderByRaw("CASE WHEN status = 'Done' THEN 1 ELSE 0 END")->oldest('deadline')->where('user_id', Auth::id())->get();
+                )->orderByRaw("FIELD(status, 'Pending', 'Done')")->orderByRaw("CASE WHEN status = 'Pending' THEN deadline END ASC")->orderByRaw("CASE WHEN status = 'Done' THEN deadline END DESC")->where('user_id', Auth::id())->get();
             default;
         }
     }
