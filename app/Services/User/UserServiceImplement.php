@@ -82,77 +82,39 @@ class UserServiceImplement extends ServiceApi implements UserService
                 'photo' => ['nullable', 'mimes:png,jpg,webp', 'max:1024'],
             ]);
 
-            switch (Auth::user()->role) {
-                case UserRoles::STAFF->value:
-                    if ($this->request->role === UserRoles::ADMIN->value) {
-                        if ($this->mainRepository->checkIfAdminExist()) {
-                            throw new \Exception("Tidak boleh menambah admin lagi.");
-                        }
-                    }
-
-                    if ($this->request->role === UserRoles::STAFF->value) {
-                        if (Auth::user()->role === $this->request->role) {
-                            throw new \Exception("Tidak boleh menambahkan sesama staff!");
-                        }
-                    }
-
-                    if ($this->file) {
-                        $fileName = Str::random(70) . '.' . $this->file->extension();
-
-                        $this->file->storeAs('img/avt', $fileName, 'public');
-                    }
-
-                    $data = $this->mainRepository->create([
-                        'name' => $this->request->name,
-                        'email' => $this->request->email,
-                        'date' => today('Asia/Kuala_Lumpur')->isoFormat('DD MMM YYYY'),
-                        'password' => $this->request->password,
-                        'role' => UserRoles::INTERN->value,
-                        'bio' => $this->request->bio ?? '-',
-                        'institution' => $this->request->institution ?? '-',
-                        'due_date' => $this->request->due_date ?? CarbonImmutable::createFromDate(0001, 1, 1, 'Asia/Kuala_Lumpur'),
-                        'photo' => $fileName ?? '-',
-                    ]);
-
-                    return $this->setCode(200)
-                        ->setMessage("$this->title_user $this->create_message_user!")
-                        ->setData($data);
-
-                default:
-                    if ($this->request->role === UserRoles::ADMIN->value) {
-                        if ($this->mainRepository->checkIfAdminExist()) {
-                            throw new \Exception("Tidak boleh menambah admin lagi.");
-                        }
-                    }
-
-                    if ($this->request->role === UserRoles::STAFF->value) {
-                        if (Auth::user()->role === $this->request->role) {
-                            throw new \Exception("Tidak boleh menambahkan sesama staff!");
-                        }
-                    }
-
-                    if ($this->file) {
-                        $fileName = Str::random(70) . '.' . $this->file->extension();
-
-                        $this->file->storeAs('img/avt', $fileName, 'public');
-                    }
-
-                    $data = $this->mainRepository->create([
-                        'name' => $this->request->name,
-                        'email' => $this->request->email,
-                        'date' => today('Asia/Kuala_Lumpur')->isoFormat('DD MMM YYYY'),
-                        'password' => $this->request->password,
-                        'role' => $this->request->role,
-                        'bio' => $this->request->bio ?? '-',
-                        'institution' => $this->request->institution ?? '-',
-                        'due_date' => $this->request->due_date ?? CarbonImmutable::createFromDate(0001, 1, 1, 'Asia/Kuala_Lumpur'),
-                        'photo' => $fileName ?? '-',
-                    ]);
-
-                    return $this->setCode(200)
-                        ->setMessage("$this->title_user $this->create_message_user!")
-                        ->setData($data);
+            if ($this->request->role === UserRoles::ADMIN->value) {
+                if ($this->mainRepository->checkIfAdminExist()) {
+                    throw new \Exception("Tidak boleh menambah admin lagi.");
+                }
             }
+
+            if ($this->request->role === UserRoles::STAFF->value) {
+                if (Auth::user()?->role === $this->request->role) {
+                    throw new \Exception("Tidak boleh menambahkan sesama staff!");
+                }
+            }
+
+            if ($this->file) {
+                $fileName = Str::random(70) . '.' . $this->file->extension();
+
+                $this->file->storeAs('img/avt', $fileName, 'public');
+            }
+
+            $data = $this->mainRepository->create([
+                'name' => $this->request->name,
+                'email' => $this->request->email,
+                'date' => today('Asia/Kuala_Lumpur')->isoFormat('DD MMM YYYY'),
+                'password' => $this->request->password,
+                'role' => UserRoles::INTERN->value,
+                'bio' => $this->request->bio ?? '-',
+                'institution' => $this->request->institution ?? '-',
+                'due_date' => $this->request->due_date ?? CarbonImmutable::createFromDate(0001, 1, 1, 'Asia/Kuala_Lumpur'),
+                'photo' => $fileName ?? '-',
+            ]);
+
+            return $this->setCode(200)
+                ->setMessage("$this->title_user $this->create_message_user!")
+                ->setData($data);
         } catch (\Exception $e) {
             return $this->exceptionResponse($e);
         }
